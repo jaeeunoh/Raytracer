@@ -49,6 +49,9 @@ int main(int argc, char** argv) {
                 WIDTH,             // Use screen width
                 HEIGHT);           // Use screen height
   
+  // Save the starting time
+  size_t start_time = time_ms();
+  
   bool running = true;
   
   // Loop until we get a quit event
@@ -59,6 +62,9 @@ int main(int argc, char** argv) {
       // If the event is a quit event, then leave the loop
       if(event.type == SDL_QUIT) running = false;
     }
+    
+    // Rotate the camera around the scene once every five seconds
+    float yrot = (time_ms() - start_time)/5000.0 * M_PI * 2;
     
     // Render the frame to this bitmap
     bitmap bmp(WIDTH, HEIGHT);
@@ -83,7 +89,9 @@ int main(int argc, char** argv) {
             float x_off = (x_sample + 0.5) / OVERSAMPLE;
        
             // Raytrace from the viewport origin through the viewing plane
-            result += raytrace(view.origin(), view.dir(x + x_off, y + y_off), 0);
+            result += raytrace(view.origin().yrotated(yrot),
+                               view.dir(x + x_off, y + y_off).yrotated(yrot),
+                               0);
           }
         }
        
