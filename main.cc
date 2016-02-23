@@ -162,6 +162,31 @@ vec raytrace(vec origin, vec dir, size_t reflections) {
     // Add the reflection to the result, tinted by the color of the shape
     result += reflected.hadamard(intersected->get_color(intersection)) *
       intersected->get_reflectivity();
+    
+    // Add the contribution from all lights in the scene
+    for(vec& light : lights) {
+      // Create a unit vector from the intersection to the light source
+      vec shadow_dir = (light - intersection).normalized();
+
+      // Check to see if the shadow vector intersects the scene
+      bool in_shadow = false;
+      for(shape* shape : scene) {
+        if(shape->intersection(intersection, shadow_dir) >= 0) {
+          in_shadow = true;
+          break;
+        }
+      }
+    
+      // If there is a clear path to the light, add illumination
+      if(!in_shadow) {
+        // Compute the intensity of the diffuse lighting
+        float diffuse_intensity = intersected->get_diffusion() *
+          fmax(0, n.dot(shadow_dir));
+      
+        // Add diffuse lighting tinted by the color of the shape
+        result += intersected->get_color(intersection) * diffuse_intensity;
+      }
+    }
   }
   
   return result;
