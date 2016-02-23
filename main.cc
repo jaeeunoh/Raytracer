@@ -17,6 +17,8 @@
 // Rendering Properties
 #define AMBIENT 0.3         // Ambient illumination
 #define OVERSAMPLE 2        // Sample 2x2 subpixels
+#define MAX_REFLECTIONS 10  // The maximum number of times a ray is reflected
+#define EPSILON 0.03        // Shift points off surfaces by this much
 
 // Set up the 3D scene
 void init_scene();
@@ -137,11 +139,32 @@ vec raytrace(vec origin, vec dir, size_t reflections) {
   // If the ray didn't intersect anything, just return the ambient color
   if(intersected == NULL) return vec(AMBIENT, AMBIENT, AMBIENT);
   
-  // Compute the point where the intersection occurred
-  vec intersection = origin + dir * intersect_distance;
+  // The new starting point for the reflected ray is the point of intersection.
+  // Find the reflection point just a *little* closer so it isn't on the object.
+  // Otherwise, the new ray may intersect the same shape again depending on
+  // rounding error.
+  vec intersection = origin + dir * (intersect_distance - EPSILON);
   
-  // Otherwise just return the color of the object
-  return intersected->get_color(intersection);
+  // Initialize the result color to the ambient light reflected in the shapes color
+  vec result = intersected->get_color(intersection) * AMBIENT;
+  
+  // Add recursive reflections, unless we're at the recursion bound
+  if(reflections < MAX_REFLECTIONS) {
+    // Find the normal at the intersection point
+    vec n = intersected->normal(intersection);
+
+    // Reflect the vector across the normal
+    vec new_dir = dir - n * 2.0 * n.dot(dir);
+      
+    // Compute the reflected color by recursively raytracing from this point
+    vec reflected = raytrace(intersection, new_dir, reflections + 1);
+  
+    // Add the reflection to the result, tinted by the color of the shape
+    result += reflected.hadamard(intersected->get_color(intersection)) *
+      intersected->get_reflectivity();
+  }
+  
+  return result;
 }
 
 /**
