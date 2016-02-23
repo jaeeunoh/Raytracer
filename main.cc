@@ -16,6 +16,7 @@
 
 // Rendering Properties
 #define AMBIENT 0.3         // Ambient illumination
+#define OVERSAMPLE 2        // Sample 2x2 subpixels
 
 // Set up the 3D scene
 void init_scene();
@@ -65,8 +66,29 @@ int main(int argc, char** argv) {
     // Loop over all pixels in the bitmap
     for(int y = 0; y < HEIGHT; y++) {
       for(int x = 0; x < WIDTH; x++) {
-        // Get the color of this ray
-        vec result = raytrace(view.origin(), view.dir(x, y), 0);
+        // Next, we collect several colors for rays that all correspond to this 
+        // pixel. When we average those rays, we get a smoother image.
+       
+        // Colors will be added here, then scaled down by OVERSAMPLE^2
+        vec result;
+       
+        // Loop over y subpixel positions
+        for(int y_sample = 0; y_sample < OVERSAMPLE; y_sample++) {
+          // The y offset is half way between the edges of this subpixel
+          float y_off = (y_sample + 0.5) / OVERSAMPLE;
+          
+          // Loop over x subpixel positions
+          for(int x_sample = 0; x_sample < OVERSAMPLE; x_sample++) {
+            // The x offset is half way between the edges of this subpixel
+            float x_off = (x_sample + 0.5) / OVERSAMPLE;
+       
+            // Raytrace from the viewport origin through the viewing plane
+            result += raytrace(view.origin(), view.dir(x + x_off, y + y_off), 0);
+          }
+        }
+       
+        // Average the oversampled points
+        result /= OVERSAMPLE * OVERSAMPLE;
 
         // Set the pixel color
         bmp.set(x, y, result);
