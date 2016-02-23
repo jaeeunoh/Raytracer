@@ -185,6 +185,16 @@ vec raytrace(vec origin, vec dir, size_t reflections) {
       
         // Add diffuse lighting tinted by the color of the shape
         result += intersected->get_color(intersection) * diffuse_intensity;
+        
+        // Find the vector that bisects the eye and light directions
+        vec bisector = (shadow_dir - dir).normalized();
+
+        // Compute the intensity of the specular reflections, which are not affected by the color of the object
+        float specular_intensity = intersected->get_spec_intensity() *
+          fmax(0, pow(n.dot(bisector), (int)intersected->get_spec_density()));
+      
+        // Add specular highlights
+        result += vec(1.0, 1.0, 1.0) * specular_intensity;
       }
     }
   }
