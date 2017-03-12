@@ -10,6 +10,13 @@
 
 #include "vec.hh"
 
+struct rgb32 {
+  uint8_t alpha;
+  uint8_t blue;
+  uint8_t green;
+  uint8_t red;
+};
+
 class bitmap {
 public:
   // Constructor: set up the bitmap width, height, and data array
@@ -25,10 +32,8 @@ public:
   // Get the size of this bitmap's image data
   size_t size() { return _width*_height*sizeof(rgb32); }
   
-  // Copy this bitmap to a given data location
-  void copy_to(void* dest) {
-    memcpy(dest, _data, size());
-  }
+  // Get a pointer to this bitmap's image data
+  const rgb32* data() { return _data; }
   
   // Disallow the copy constructor for bitmaps
   bitmap(const bitmap&) = delete;
@@ -56,14 +61,6 @@ public:
 private:
   size_t _width;
   size_t _height;
-  
-  struct rgb32 {
-    uint8_t alpha;
-    uint8_t blue;
-    uint8_t green;
-    uint8_t red;
-  };
-  
   rgb32* _data;
 };
 

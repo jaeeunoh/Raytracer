@@ -89,12 +89,17 @@ public:
    * \param height  The height of the area where bmp should be displayed
    */
   void display(bitmap& bmp, int xstart, int ystart, int width, int height) {
-    uint32_t* data;
+    rgb32* dest;
+    const rgb32* src = bmp.data();
     int pitch;
   
-    SDL_LockTexture(_texture, NULL, (void**)&data, &pitch);
-  
-    bmp.copy_to(data);
+    SDL_LockTexture(_texture, NULL, (void**)&dest, &pitch);
+    
+    for(int x=0; x<width; x++) {
+      for(int y=0; y<height; y++) {
+        dest[(x + xstart) + (y + ystart) * _width] = src[x + y * bmp.width()];
+      }
+    }
   
     SDL_UnlockTexture(_texture);
     SDL_Rect destination = { 0, 0, (int)_width, (int)_height };
