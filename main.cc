@@ -10,6 +10,9 @@
 #include "util.hh"
 #include "vec.hh"
 
+// The decay factor for the moving average frame rate
+#define AVG_DECAY 0.99
+
 // Screen size
 #define WIDTH 640
 #define HEIGHT 480
@@ -50,6 +53,12 @@ int main(int argc, char** argv) {
   
   bool running = true;
   
+  // Track the time we started the last frame
+  size_t previous_time = time_ms();
+  
+  // Keep a moving average frame rate
+  float frame_rate = 1;
+  
   // Loop until we get a quit event
   while(running) {
     // Process events
@@ -75,6 +84,15 @@ int main(int argc, char** argv) {
     
     // Display the rendered frame
     ui.display(bmp);
+    
+    // Update the frame rate
+    size_t now = time_ms();
+    float current_frame_rate = 1000.0 / (now - previous_time);
+    frame_rate = (frame_rate * AVG_DECAY + current_frame_rate) / (1 + AVG_DECAY);
+    printf("Frame Rate: %2f\n", frame_rate);
+    
+    // Update the previous time
+    previous_time = now;
   }
   
   return 0;
