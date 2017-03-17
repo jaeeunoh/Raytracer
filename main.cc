@@ -91,7 +91,8 @@ viewport view(vec(0, 100, -300), // Look from here
     // Render the frame to this bitmap
     bitmap bmp(WIDTH, HEIGHT); 
 
-    // Creating Threads 
+    // Creating Threads
+    // Citation: All threads codes are modified from 213-data-structures lab thread codes. 
     pthread_t threads[NUM_THREADS]; 
     pthread_args_t args[NUM_THREADS];
 
